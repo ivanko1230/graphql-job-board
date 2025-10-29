@@ -4,7 +4,7 @@ const { requireAuth } = require('../auth/requireAuth');
 const resolvers = {
   Query: {
     jobs: async (_, args) => {
-      const { location, remote, tags, search, limit = 50, offset = 0 } = args;
+      const { location, remote, tags, categoryId, search, limit = 50, offset = 0 } = args;
       
       const where = {};
       
@@ -20,6 +20,10 @@ const resolvers = {
         where.tags = { hasSome: tags };
       }
       
+      if (categoryId) {
+        where.categoryId = categoryId;
+      }
+      
       if (search) {
         where.OR = [
           { title: { contains: search, mode: 'insensitive' } },
@@ -32,6 +36,7 @@ const resolvers = {
           where,
           include: {
             company: true,
+            category: true,
             applications: true,
           },
           orderBy: { createdAt: 'desc' },
@@ -49,8 +54,23 @@ const resolvers = {
         where: { id },
         include: {
           company: true,
+          category: true,
           applications: true,
         },
+      });
+    },
+    
+    categories: async () => {
+      return prisma.category.findMany({
+        include: { jobs: true },
+        orderBy: { name: 'asc' },
+      });
+    },
+    
+    category: async (_, { id }) => {
+      return prisma.category.findUnique({
+        where: { id },
+        include: { jobs: true },
       });
     },
     
@@ -91,7 +111,7 @@ const resolvers = {
           ...input,
           tags: input.tags || [],
         },
-        include: { company: true },
+        include: { company: true, category: true },
       });
     }),
     
@@ -100,7 +120,7 @@ const resolvers = {
       return prisma.job.update({
         where: { id },
         data: input,
-        include: { company: true },
+        include: { company: true, category: true },
       });
     }),
     
@@ -126,6 +146,25 @@ const resolvers = {
     deleteCompany: requireAuth(async (parent, args, context) => {
       const { id } = args;
       await prisma.company.delete({ where: { id } });
+      return true;
+    }),
+    
+    createCategory: requireAuth(async (parent, args, context) => {
+      const { input } = args;
+      return prisma.category.create({ data: input });
+    }),
+    
+    updateCategory: requireAuth(async (parent, args, context) => {
+      const { id, input } = args;
+      return prisma.category.update({
+        where: { id },
+        data: input,
+      });
+    }),
+    
+    deleteCategory: requireAuth(async (parent, args, context) => {
+      const { id } = args;
+      await prisma.category.delete({ where: { id } });
       return true;
     }),
     

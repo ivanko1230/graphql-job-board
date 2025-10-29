@@ -10,6 +10,10 @@ export const CREATE_JOB = gql`
       remote
       salary
       tags
+      category {
+        id
+        name
+      }
       company {
         id
         name
@@ -28,6 +32,10 @@ export const UPDATE_JOB = gql`
       remote
       salary
       tags
+      category {
+        id
+        name
+      }
       company {
         id
         name
@@ -69,6 +77,34 @@ export const UPDATE_COMPANY = gql`
 export const DELETE_COMPANY = gql`
   mutation DeleteCompany($id: ID!) {
     deleteCompany(id: $id)
+  }
+`;
+
+export const CREATE_CATEGORY = gql`
+  mutation CreateCategory($input: CategoryInput!) {
+    createCategory(input: $input) {
+      id
+      name
+      slug
+      description
+    }
+  }
+`;
+
+export const UPDATE_CATEGORY = gql`
+  mutation UpdateCategory($id: ID!, $input: CategoryInput!) {
+    updateCategory(id: $id, input: $input) {
+      id
+      name
+      slug
+      description
+    }
+  }
+`;
+
+export const DELETE_CATEGORY = gql`
+  mutation DeleteCategory($id: ID!) {
+    deleteCategory(id: $id)
   }
 `;
 

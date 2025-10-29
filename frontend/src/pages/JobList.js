@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { Link } from 'react-router-dom';
-import { GET_JOBS } from '../graphql/queries';
+import { GET_JOBS, GET_CATEGORIES } from '../graphql/queries';
 import './JobList.css';
 
 function JobList() {
@@ -10,6 +10,7 @@ function JobList() {
     location: '',
     remote: null,
     tags: [],
+    categoryId: null,
   });
 
   const { loading, error, data, refetch } = useQuery(GET_JOBS, {
@@ -18,8 +19,11 @@ function JobList() {
       location: filters.location || undefined,
       remote: filters.remote,
       tags: filters.tags.length > 0 ? filters.tags : undefined,
+      categoryId: filters.categoryId || undefined,
     },
   });
+
+  const { data: categoriesData } = useQuery(GET_CATEGORIES);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -74,6 +78,29 @@ function JobList() {
           <button type="submit" className="search-button">Search</button>
         </form>
 
+        {(categoriesData?.categories || []).length > 0 && (
+          <div className="categories-section">
+            <h3>Filter by Category:</h3>
+            <div className="categories-container">
+              <button
+                onClick={() => setFilters({ ...filters, categoryId: null })}
+                className={`category-btn ${!filters.categoryId ? 'active' : ''}`}
+              >
+                All Categories
+              </button>
+              {categoriesData.categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setFilters({ ...filters, categoryId: cat.id })}
+                  className={`category-btn ${filters.categoryId === cat.id ? 'active' : ''}`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="tags-section">
           <h3>Filter by Tags:</h3>
           <div className="tags-container">
@@ -107,6 +134,9 @@ function JobList() {
               )}
               <span className="company-name">{job.company.name}</span>
             </div>
+            {job.category && (
+              <span className="job-category">{job.category.name}</span>
+            )}
             <p className="job-location">📍 {job.location}</p>
             <p className="job-description">{job.description.substring(0, 150)}...</p>
             {job.salary && <p className="job-salary">💰 {job.salary}</p>}

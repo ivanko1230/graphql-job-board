@@ -12,6 +12,15 @@ const typeDefs = gql`
     updatedAt: String!
   }
 
+  type Category {
+    id: ID!
+    name: String!
+    slug: String!
+    description: String
+    createdAt: String!
+    updatedAt: String!
+  }
+
   type Job {
     id: ID!
     title: String!
@@ -21,6 +30,8 @@ const typeDefs = gql`
     salary: String
     company: Company!
     companyId: ID!
+    category: Category
+    categoryId: ID
     tags: [String!]!
     applications: [Application!]!
     createdAt: String!
@@ -45,11 +56,14 @@ const typeDefs = gql`
       location: String
       remote: Boolean
       tags: [String!]
+      categoryId: ID
       search: String
       limit: Int
       offset: Int
     ): JobList!
     job(id: ID!): Job
+    categories: [Category!]!
+    category(id: ID!): Category
     companies: [Company!]!
     company(id: ID!): Company
     applications: [Application!]!
@@ -68,7 +82,14 @@ const typeDefs = gql`
     remote: Boolean!
     salary: String
     companyId: ID!
+    categoryId: ID
     tags: [String!]
+  }
+
+  input CategoryInput {
+    name: String!
+    slug: String!
+    description: String
   }
 
   input CompanyInput {
@@ -90,6 +111,9 @@ const typeDefs = gql`
     createJob(input: JobInput!): Job!
     updateJob(id: ID!, input: JobInput!): Job!
     deleteJob(id: ID!): Boolean!
+    createCategory(input: CategoryInput!): Category!
+    updateCategory(id: ID!, input: CategoryInput!): Category!
+    deleteCategory(id: ID!): Boolean!
     createCompany(input: CompanyInput!): Company!
     updateCompany(id: ID!, input: CompanyInput!): Company!
     deleteCompany(id: ID!): Boolean!

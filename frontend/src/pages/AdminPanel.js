@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import { GET_JOBS, GET_COMPANIES } from '../graphql/queries';
-import { CREATE_JOB, UPDATE_JOB, DELETE_JOB, CREATE_COMPANY, UPDATE_COMPANY, DELETE_COMPANY, GET_APPLICATIONS } from '../graphql/mutations';
+import { GET_JOBS, GET_COMPANIES, GET_CATEGORIES } from '../graphql/queries';
+import { CREATE_JOB, UPDATE_JOB, DELETE_JOB, CREATE_COMPANY, UPDATE_COMPANY, DELETE_COMPANY, CREATE_CATEGORY, UPDATE_CATEGORY, DELETE_CATEGORY, GET_APPLICATIONS } from '../graphql/mutations';
 import './AdminPanel.css';
 
 function AdminPanel() {
   const [activeTab, setActiveTab] = useState('jobs');
   const [editingJob, setEditingJob] = useState(null);
   const [editingCompany, setEditingCompany] = useState(null);
+  const [editingCategory, setEditingCategory] = useState(null);
   const [showJobForm, setShowJobForm] = useState(false);
   const [showCompanyForm, setShowCompanyForm] = useState(false);
+  const [showCategoryForm, setShowCategoryForm] = useState(false);
 
   const { data: jobsData, loading: jobsLoading } = useQuery(GET_JOBS);
   const { data: companiesData, loading: companiesLoading } = useQuery(GET_COMPANIES);
+  const { data: categoriesData, loading: categoriesLoading } = useQuery(GET_CATEGORIES);
   const { data: applicationsData, loading: applicationsLoading } = useQuery(GET_APPLICATIONS);
 
   const [createJob] = useMutation(CREATE_JOB, {
@@ -53,6 +56,42 @@ function AdminPanel() {
     refetchQueries: [{ query: GET_COMPANIES }],
   });
 
+  const [createCategory] = useMutation(CREATE_CATEGORY, {
+    refetchQueries: [{ query: GET_CATEGORIES }],
+    onCompleted: () => {
+      setShowCategoryForm(false);
+      setEditingCategory(null);
+    },
+  });
+
+  const [updateCategory] = useMutation(UPDATE_CATEGORY, {
+    refetchQueries: [{ query: GET_CATEGORIES }],
+    onCompleted: () => {
+      setEditingCategory(null);
+    },
+  });
+
+  const [deleteCategory] = useMutation(DELETE_CATEGORY, {
+    refetchQueries: [{ query: GET_CATEGORIES }],
+  });
+
+  const handleCategorySubmit = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const input = {
+      name: formData.get('name'),
+      slug: formData.get('slug'),
+      description: formData.get('description') || null,
+    };
+
+    if (editingCategory) {
+      updateCategory({ variables: { id: editingCategory.id, input } });
+    } else {
+      createCategory({ variables: { input } });
+    }
+    e.target.reset();
+  };
+
   const handleJobSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -63,6 +102,7 @@ function AdminPanel() {
       remote: formData.get('remote') === 'on',
       salary: formData.get('salary') || null,
       companyId: formData.get('companyId'),
+      categoryId: formData.get('categoryId') || null,
       tags: formData.get('tags') ? formData.get('tags').split(',').map(t => t.trim()) : [],
     };
 
@@ -94,6 +134,7 @@ function AdminPanel() {
 
   const jobs = jobsData?.jobs?.jobs || [];
   const companies = companiesData?.companies || [];
+  const categories = categoriesData?.categories || [];
   const applications = applicationsData?.applications || [];
 
   return (
@@ -106,6 +147,12 @@ function AdminPanel() {
           onClick={() => setActiveTab('jobs')}
         >
           Jobs
+        </button>
+        <button
+          className={`tab ${activeTab === 'categories' ? 'active' : ''}`}
+          onClick={() => setActiveTab('categories')}
+        >
+          Categories
         </button>
         <button
           className={`tab ${activeTab === 'companies' ? 'active' : ''}`}
@@ -145,6 +192,15 @@ function AdminPanel() {
                       <option value="">Select Company</option>
                       {companies.map((company) => (
                         <option key={company.id} value={company.id}>{company.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Category</label>
+                    <select name="categoryId" defaultValue={editingJob?.categoryId || ''}>
+                      <option value="">No Category</option>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.id}>{category.name}</option>
                       ))}
                     </select>
                   </div>
@@ -209,6 +265,83 @@ function AdminPanel() {
                         <button className="btn-delete" onClick={() => {
                           if (window.confirm('Are you sure you want to delete this job?')) {
                             deleteJob({ variables: { id: job.id } });
+                          }
+                        }}>
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'categories' && (
+        <div className="tab-content">
+          <div className="section-header">
+            <h2>Manage Categories</h2>
+            <button className="btn-primary" onClick={() => { setShowCategoryForm(true); setEditingCategory(null); }}>
+              + Add Category
+            </button>
+          </div>
+
+          {showCategoryForm && (
+            <div className="form-card">
+              <h3>{editingCategory ? 'Edit Category' : 'Create New Category'}</h3>
+              <form onSubmit={handleCategorySubmit}>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label>Name *</label>
+                    <input type="text" name="name" required defaultValue={editingCategory?.name || ''} />
+                  </div>
+                  <div className="form-group">
+                    <label>Slug *</label>
+                    <input type="text" name="slug" required defaultValue={editingCategory?.slug || ''} />
+                  </div>
+                  <div className="form-group full-width">
+                    <label>Description</label>
+                    <textarea name="description" rows="4" defaultValue={editingCategory?.description || ''} />
+                  </div>
+                </div>
+                <div className="form-actions">
+                  <button type="submit" className="btn-primary">{editingCategory ? 'Update' : 'Create'}</button>
+                  <button type="button" className="btn-secondary" onClick={() => { setShowCategoryForm(false); setEditingCategory(null); }}>
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {categoriesLoading ? (
+            <div className="loading">Loading categories...</div>
+          ) : (
+            <div className="table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Slug</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categories.map((category) => (
+                    <tr key={category.id}>
+                      <td>{category.name}</td>
+                      <td>{category.slug}</td>
+                      <td>{category.description || '-'}</td>
+                      <td>
+                        <button className="btn-edit" onClick={() => { setEditingCategory(category); setShowCategoryForm(true); }}>
+                          Edit
+                        </button>
+                        <button className="btn-delete" onClick={() => {
+                          if (window.confirm('Are you sure you want to delete this category?')) {
+                            deleteCategory({ variables: { id: category.id } });
                           }
                         }}>
                           Delete

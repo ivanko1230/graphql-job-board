@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 
 export const GET_JOBS = gql`
-  query GetJobs($location: String, $remote: Boolean, $tags: [String!], $search: String, $limit: Int, $offset: Int) {
-    jobs(location: $location, remote: $remote, tags: $tags, search: $search, limit: $limit, offset: $offset) {
+  query GetJobs($location: String, $remote: Boolean, $tags: [String!], $categoryId: ID, $search: String, $limit: Int, $offset: Int) {
+    jobs(location: $location, remote: $remote, tags: $tags, categoryId: $categoryId, search: $search, limit: $limit, offset: $offset) {
       jobs {
         id
         title
@@ -12,6 +12,11 @@ export const GET_JOBS = gql`
         salary
         tags
         createdAt
+        category {
+          id
+          name
+          slug
+        }
         company {
           id
           name
@@ -34,6 +39,11 @@ export const GET_JOB = gql`
       salary
       tags
       createdAt
+      category {
+        id
+        name
+        slug
+      }
       company {
         id
         name
@@ -52,6 +62,17 @@ export const GET_COMPANIES = gql`
       name
       website
       logo
+    }
+  }
+`;
+
+export const GET_CATEGORIES = gql`
+  query GetCategories {
+    categories {
+      id
+      name
+      slug
+      description
     }
   }
 `;
