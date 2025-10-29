@@ -4,6 +4,7 @@ const { expressMiddleware } = require('@apollo/server/express4');
 const cors = require('cors');
 const { typeDefs } = require('./schema/typeDefs');
 const { resolvers } = require('./schema/resolvers');
+const { createContext } = require('./auth/context');
 require('dotenv').config();
 
 const app = express();
@@ -14,11 +15,14 @@ async function startServer() {
     typeDefs,
     resolvers,
     introspection: true,
+    context: createContext,
   });
 
   await server.start();
 
-  app.use('/graphql', cors(), express.json(), expressMiddleware(server));
+  app.use('/graphql', cors(), express.json(), expressMiddleware(server, {
+    context: createContext,
+  }));
 
   app.listen(PORT, () => {
     console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);

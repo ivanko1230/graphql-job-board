@@ -1,4 +1,5 @@
 const { prisma } = require('../db/prisma');
+const { requireAuth } = require('../auth/requireAuth');
 
 const resolvers = {
   Query: {
@@ -83,7 +84,8 @@ const resolvers = {
   },
   
   Mutation: {
-    createJob: async (_, { input }) => {
+    createJob: requireAuth(async (parent, args, context) => {
+      const { input } = args;
       return prisma.job.create({
         data: {
           ...input,
@@ -91,36 +93,41 @@ const resolvers = {
         },
         include: { company: true },
       });
-    },
+    }),
     
-    updateJob: async (_, { id, input }) => {
+    updateJob: requireAuth(async (parent, args, context) => {
+      const { id, input } = args;
       return prisma.job.update({
         where: { id },
         data: input,
         include: { company: true },
       });
-    },
+    }),
     
-    deleteJob: async (_, { id }) => {
+    deleteJob: requireAuth(async (parent, args, context) => {
+      const { id } = args;
       await prisma.job.delete({ where: { id } });
       return true;
-    },
+    }),
     
-    createCompany: async (_, { input }) => {
+    createCompany: requireAuth(async (parent, args, context) => {
+      const { input } = args;
       return prisma.company.create({ data: input });
-    },
+    }),
     
-    updateCompany: async (_, { id, input }) => {
+    updateCompany: requireAuth(async (parent, args, context) => {
+      const { id, input } = args;
       return prisma.company.update({
         where: { id },
         data: input,
       });
-    },
+    }),
     
-    deleteCompany: async (_, { id }) => {
+    deleteCompany: requireAuth(async (parent, args, context) => {
+      const { id } = args;
       await prisma.company.delete({ where: { id } });
       return true;
-    },
+    }),
     
     createApplication: async (_, { input }) => {
       return prisma.application.create({

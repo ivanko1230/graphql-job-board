@@ -40,6 +40,19 @@
   color: #3498db;
 }
 
+.logout-button {
+  background: none;
+  border: none;
+  font-size: inherit;
+  font-family: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  color: #e74c3c;
+}
+
 @media (max-width: 768px) {
   .header-container {
     flex-direction: column;
