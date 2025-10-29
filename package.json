@@ -1,0 +1,17 @@
+{
+  "name": "graphql-job-board",
+  "version": "1.0.0",
+  "description": "Full-stack job board with GraphQL API",
+  "scripts": {
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm start",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
+  },
+  "keywords": ["graphql", "job-board", "react", "apollo"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
